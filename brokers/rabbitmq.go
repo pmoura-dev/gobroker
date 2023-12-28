@@ -1,6 +1,8 @@
 package brokers
 
 import (
+	"context"
+
 	"github.com/pmoura-dev/gobroker"
 	"github.com/rabbitmq/amqp091-go"
 )
@@ -31,6 +33,8 @@ func (q *RabbitMQQueue) Bind(exchange string, routingKey string) {
 type RabbitMQBroker struct {
 	conn *amqp091.Connection
 	ch   *amqp091.Channel
+
+	publisher RabbitMQPublisher
 
 	queues    []*RabbitMQQueue
 	exchanges []string
@@ -66,6 +70,7 @@ func (b *RabbitMQBroker) Connect(url string) error {
 
 	b.conn = conn
 	b.ch = ch
+	b.publisher.ch = ch
 	return nil
 }
 
@@ -149,6 +154,7 @@ func (b *RabbitMQBroker) Consume(consumer gobroker.Consumer) error {
 		return err
 	}
 
+	consumer.Context.Publisher = b.publisher
 	for delivery := range deliveryChan {
 		message := RabbitMQMessage{delivery: delivery}
 		err := consumer.Handler(consumer.Context, message)
@@ -158,4 +164,34 @@ func (b *RabbitMQBroker) Consume(consumer gobroker.Consumer) error {
 	}
 
 	return nil
+}
+
+type RabbitMQPublisher struct {
+	ch *amqp091.Channel
+}
+
+func (p RabbitMQPublisher) Publish(message []byte, topic string, properties map[string]any) error {
+	exchange, exists := properties["exchange"]
+	if !exists {
+		exchange = ""
+	}
+
+	correlationID, exists := properties["correlation_id"]
+	if !exists {
+		correlationID = ""
+	}
+
+	msg := amqp091.Publishing{
+		CorrelationId: correlationID.(string),
+		Body:          message,
+	}
+
+	return p.ch.PublishWithContext(
+		context.TODO(),
+		exchange.(string),
+		topic,
+		false,
+		false,
+		msg,
+	)
 }

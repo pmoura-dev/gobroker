@@ -18,6 +18,8 @@ func (c *Consumer) AddParam(key any, value any) *Consumer {
 type ConsumerContext struct {
 	Queue  string
 	Params map[any]any
+
+	Publisher Publisher
 }
 
 type ConsumerHandlerFunc func(ctx ConsumerContext, message Message) error
