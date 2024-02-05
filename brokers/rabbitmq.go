@@ -15,6 +15,10 @@ func (m RabbitMQMessage) GetCorrelationID() string {
 	return m.delivery.CorrelationId
 }
 
+func (m RabbitMQMessage) GetTopic() string {
+	return m.delivery.RoutingKey
+}
+
 func (m RabbitMQMessage) GetBody() []byte {
 	return m.delivery.Body
 }

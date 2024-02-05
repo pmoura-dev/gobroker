@@ -2,6 +2,7 @@ package gobroker
 
 type Message interface {
 	GetCorrelationID() string
+	GetTopic() string
 	GetBody() []byte
 }
 
