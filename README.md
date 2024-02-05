@@ -8,7 +8,7 @@ Small library to interact with brokers.
 ## Installation
 
 ```shell
-go get github.com/pmoura-dev/gobroker@v0.0.1
+go get github.com/pmoura-dev/gobroker@v0.0.2
 ```
 
 ## How to use
